@@ -252,6 +252,12 @@ function render() {
    }
   };
 
+const chatButton = make("button", "💬 Chat with " + item.name);
+chatButton.type = "button";
+chatButton.onclick = () => openCharacterChat(item.name);
+info.append(chatButton);
+
+
   info.append(remove);
   card.append(avatar, info);
   list.append(card);
