@@ -89,6 +89,41 @@ if(Array.isArray(saved.characters))characters=saved.characters;
 if(saved.history && typeof saved.history==="object")history=saved.history;
 }
 }catch(e){}
+  
+// Import characters saved in the Character Creator.
+try {
+  const created = JSON.parse(
+    localStorage.getItem("demon-ai-characters-v1") || "[]"
+  );
+
+  if (Array.isArray(created)) {
+    created.forEach(person => {
+      if (!person || !person.name) return;
+
+      const id = String(person.id || person.name);
+
+      const character = {
+        id: id,
+        name: person.name,
+        icon: "💜",
+        photo: person.photo || "",
+        personality: person.personality || "",
+        story: person.story || ""
+      };
+
+      const existing = characters.findIndex(c => c.id === id);
+
+      if (existing >= 0) {
+        characters[existing] = character;
+      } else {
+        characters.push(character);
+      }
+    });
+  }
+} catch (error) {
+  console.warn("Could not load created characters:", error);
+}
+
 let current=characters[0]?.id||"demon";
 function save(){
 try{localStorage.setItem(key,JSON.stringify({characters,history}))}
