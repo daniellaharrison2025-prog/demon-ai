@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Demon AI | Chat</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#100b23;color:white}
+header{padding:16px;background:#291344;display:flex;justify-content:space-between;align-items:center}
+h1{margin:0;font-size:22px}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0;border-radius:10px;padding:10px;background:#7141c8;color:white}
+button:hover{background:#9364e8}
+.layout{display:flex;height:calc(100dvh - 67px)}
+aside{width:250px;background:#1e1436;padding:14px;overflow:auto}
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+.contact{padding:13px;border-bottom:1px solid #47335c;cursor:pointer}
+.contact:hover{background:#392653}
+.toolbar{padding:12px;background:#25183e;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#messages{flex:1;overflow:auto;padding:15px}
+.bubble{padding:12px;margin:10px 0;max-width:80%;border-radius:15px;background:#38294f;white-space:pre-wrap;overflow-wrap:anywhere}
+.mine{margin-left:auto;background:#6342ae}
+form{display:flex;gap:8px;padding:12px;background:#241638}
+input{min-width:0;flex:1;padding:12px;border-radius:10px;border:0}
+.settings{padding:10px;background:#291344}
+.settings label{display:inline-block;margin:5px 12px 5px 0}
+#call{display:none;position:fixed;inset:0;background:#140c2c;z-index:10;align-items:center;justify-content:center;flex-direction:column;text-align:center}
+#call .avatar{font-size:85px}
+#call button{margin:10px}
+small{color:#c5b8da}
+@media(max-width:650px){
+.layout{flex-direction:column}
+aside{width:100%;height:145px;flex-shrink:0}
+#contacts{display:flex;overflow:auto}
+.contact{min-width:120px}
+}
+</style>
+</head>
+<body>
+<header>
+<h1>🐾 Demon AI</h1>
+<button onclick="addCharacter()">+ Character</button>
+</header>
+
+<div class="layout">
+<aside>
+<h3>Contacts</h3>
+<div id="contacts"></div>
+</aside>
+<main>
+<div class="toolbar">
+<strong id="characterName">Demon 🐈</strong>
+<button onclick="startCall()">📞 Call</button>
+<button onclick="speak('Hello! I am here with you.')">🔊 Voice</button>
+</div>
+<div class="settings">
+<label><input type="checkbox" id="roleplay"> Roleplay</label>
+<label><input type="checkbox" id="venting"> Venting</label>
+</div>
+<div id="messages"></div>
+<form id="messageForm">
+<input id="message" placeholder="Type a message..." required autocomplete="off">
+<button type="submit">Send</button>
+</form>
+<small style="padding:8px">Testing version: replies are demonstrations, not real AI.</small>
+</main>
+</div>
+
+<div id="call">
+<div class="avatar" id="callAvatar">🐈</div>
+<h1 id="callName">Demon</h1>
+<p>Demo character call</p>
+<button onclick="speak('Hello! It is nice to hear from you.')">🔊 Hear voice</button>
+<button onclick="endCall()" style="background:#c02c57">📵 End call</button>
+</div>
+
+<script>
+const key="demon-ai-chat-test-v1";
+let characters=[
+{id:"demon",name:"Demon",icon:"🐈"}
+];
+let history={};
+try{
+const saved=JSON.parse(localStorage.getItem(key));
+if(saved){
+if(Array.isArray(saved.characters))characters=saved.characters;
+if(saved.history && typeof saved.history==="object")history=saved.history;
+}
+}catch(e){}
+let current=characters[0]?.id||"demon";
+function save(){
+try{localStorage.setItem(key,JSON.stringify({characters,history}))}
+catch(e){console.warn("Storage unavailable",e)}
+}
+function selected(){return characters.find(c=>c.id===current)||characters[0]}
+function renderContacts(){
+const area=document.getElementById("contacts");
+area.replaceChildren();
+characters.forEach(c=>{
+const item=document.createElement("div");
+item.className="contact";
+item.textContent=c.icon+" "+c.name;
+item.onclick=()=>{current=c.id;render()};
+area.appendChild(item);
+});
+}
+function render(){
+renderContacts();
+const c=selected();
+document.getElementById("characterName").textContent=c.icon+" "+c.name;
+const area=document.getElementById("messages");
+area.replaceChildren();
+(history[current]||[]).forEach(m=>{
+const bubble=document.createElement("div");
+bubble.className="bubble"+(m.mine?" mine":"");
+bubble.textContent=m.text;
+area.appendChild(bubble);
+});
+area.scrollTop=area.scrollHeight;
+}
+function addCharacter(){
+const name=prompt("Character name:");
+if(!name||!name.trim())return;
+const icon=prompt("Character emoji:","✨")||"✨";
+const id="char-"+Date.now();
+characters.push({id,name:name.trim(),icon});
+current=id;save();render();
+}
+function addMessage(text,mine){
+if(!history[current])history[current]=[];
+history[current].push({text,mine});
+save();render();
+}
+document.getElementById("messageForm").onsubmit=e=>{
+e.preventDefault();
+const input=document.getElementById("message");
+const text=input.value.trim();
+if(!text)return;
+input.value="";
+addMessage(text,true);
+const c=selected();
+let reply="I'm listening. Tell me more.";
+if(document.getElementById("venting").checked)
+reply="I'm here to listen. What would you like to talk about?";
+else if(document.getElementById("roleplay").checked)
+reply="What happens next in our story?";
+else if(/hello|hi|hey/i.test(text))
+reply="Hey! I'm glad you came to chat.";
+const target=current;
+setTimeout(()=>{
+const previous=current;
+current=target;
+addMessage(reply,false);
+current=previous;
+if(previous!==target)render();
+},500);
+};
+function speak(text){
+if(!("speechSynthesis" in window)){
+alert("Speech is not supported in this browser.");return;
+}
+speechSynthesis.cancel();
+const u=new SpeechSynthesisUtterance(text);
+u.rate=0.95;
+speechSynthesis.speak(u);
+}
+function startCall(){
+const c=selected();
+document.getElementById("callAvatar").textContent=c.icon;
+document.getElementById("callName").textContent=c.name;
+document.getElementById("call").style.display="flex";
+}
+function endCall(){
+speechSynthesis?.cancel();
+document.getElementById("call").style.display="none";
+}
+render();
+</script>
+</body>
+</html>
