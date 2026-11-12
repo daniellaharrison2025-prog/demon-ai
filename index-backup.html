@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demon AI | Rainbow Bridge Companion</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;color:white;background:linear-gradient(145deg,#180b32,#432075,#086e7d);min-height:100vh}
+header{text-align:center;padding:36px 16px;background:#160b30bb}
+h1{font-size:38px;margin:10px 0;color:#f5d7ff}
+h2{color:#9cf5ed}
+.subtitle{color:#f8d5ff}
+nav{display:flex;justify-content:center;flex-wrap:wrap;gap:9px;padding:18px}
+button{background:linear-gradient(110deg,#a34dca,#12a5aa);color:white;border:0;border-radius:24px;padding:13px 19px;cursor:pointer;font-weight:bold}
+button:hover{filter:brightness(1.2)}
+main{max-width:950px;margin:auto;padding:15px}
+.panel{background:#ffffff12;border:1px solid #ffffff30;border-radius:22px;padding:25px;margin-bottom:22px;text-align:center;box-shadow:0 8px 30px #0003}
+.hero{background:linear-gradient(160deg,#753bb2,#1c8d9b,#f3adbd);border-radius:20px;padding:35px 15px}
+.cat{font-size:100px;filter:drop-shadow(0 0 20px #fff9)}
+.angel{filter:drop-shadow(0 0 28px #fff)}
+#angelWings{font-size:42px}
+#photo{max-width:260px;width:90%;border-radius:18px;margin:12px auto;display:none}
+input,textarea{background:#fff;color:#241638;border:0;border-radius:12px;padding:12px;width:100%;max-width:600px;margin:7px 0;font-size:16px}
+.chat{height:240px;overflow-y:auto;background:#170e30aa;border-radius:14px;padding:14px;text-align:left;margin:15px auto;max-width:600px}
+.message{padding:10px;margin:9px 0;border-radius:12px;background:#ffffff1c}
+.reply{background:#16a6a640}
+.memory{white-space:pre-wrap;text-align:left;background:#ffffff15;border-radius:12px;padding:12px;margin:10px 0}
+footer{text-align:center;padding:30px;color:#ddd}
+.small{font-size:13px;color:#eee}
+</style>
+</head>
+<body>
+<header>
+<div style="font-size:48px">🐾🌈🪽</div>
+<h1>DEMON AI</h1>
+<p class="subtitle">Rainbow Bridge Companion</p>
+<p>Forever loved. Forever remembered.</p>
+</header>
+
+<nav>
+<button onclick="go('home')">🏠 Home</button>
+<button onclick="go('companion')">🐈 Demon</button>
+<button onclick="go('talk')">💬 Talk</button>
+<button onclick="go('memories')">❤️ Memories</button>
+<button onclick="go('highway')">🚛 Highway 46</button>
+</nav>
+
+<main>
+<section class="panel" id="home">
+<div class="hero">
+<h2 style="color:white">Welcome to Demon's World</h2>
+<div style="font-size:70px">🌈 🐾 🌈</div>
+<p>A peaceful place made with love.</p>
+</div>
+<h2>Our Sweet Demon</h2>
+<p>Eleven years of memories, love, and paw prints that will never fade.</p>
+<button onclick="go('companion')">Meet Demon ❤️</button>
+</section>
+
+<section class="panel" id="companion">
+<h2>Meet Demon 🐾</h2>
+<p>Choose how you would like to remember him.</p>
+<button onclick="setMode('real')">🐈 Realistic Demon</button>
+<button onclick="setMode('angel')">🪽 Angel Demon</button>
+<div class="hero" style="margin-top:20px">
+<div id="angelWings" style="display:none">🪽 ✨ 🪽</div>
+<img id="photo" alt="Demon">
+<div id="cat" class="cat">🐈</div>
+<h2 id="modeTitle" style="color:white">Realistic Demon</h2>
+<p id="modeText">Your beloved companion, just as you remember him.</p>
+</div>
+<p>Choose a photo of Demon from your device:</p>
+<input type="file" accept="image/*" onchange="loadPhoto(event)">
+<p class="small">Photo previews stay on this device and are not uploaded.</p>
+</section>
+
+<section class="panel" id="talk">
+<h2>Talk to Demon 💬</h2>
+<p>A gentle memorial conversation inspired by your memories.</p>
+<div class="chat" id="chatBox">
+<div class="message reply">🐾 Welcome to Demon's special place. You can share a memory or say hello.</div>
+</div>
+<input id="chatInput" placeholder="Write something to Demon..." onkeydown="if(event.key==='Enter')sendMessage()">
+<br>
+<button onclick="sendMessage()">Send ❤️</button>
+<p class="small">This is a scripted memorial companion, not a connection to Demon or a live AI service.</p>
+</section>
+
+<section class="panel" id="memories">
+<h2>Demon's Memory Book ❤️</h2>
+<p>Write down the moments you never want to forget.</p>
+<textarea id="memoryInput" rows="4" placeholder="A special memory of Demon..."></textarea>
+<br>
+<button onclick="saveMemory()">Save Memory 🐾</button>
+<div id="memoryList"></div>
+<p class="small">Memories are saved only in this browser. They may disappear if browser data is cleared. Keep another copy of important memories.</p>
+</section>
+
+<section class="panel" id="highway">
+<h2>Heaven's Highway 46 🚛🌈</h2>
+<div style="font-size:75px">🚛 🌈 🐾</div>
+<p>At the end of the rainbow, imagine a beautiful diesel truck waiting beside a peaceful meadow.</p>
+<p>A special place honoring Demon and Big Dave, with love that travels beyond every horizon.</p>
+<p>Forever riding the highway of memories.</p>
+</section>
+</main>
+
+<footer>
+🐾 Demon AI — Rainbow Bridge Companion
+<br>
+Made with love ❤️
+</footer>
+
+<script>
+let mode="real";
+let memories=[];
+try{
+memories=JSON.parse(localStorage.getItem("demonMemories")||"[]");
+if(!Array.isArray(memories))memories=[];
+}catch(e){memories=[]}
+renderMemories();
+
+function go(id){
+document.getElementById(id).scrollIntoView({behavior:"smooth"});
+}
+
+function setMode(choice){
+mode=choice;
+let angel=choice==="angel";
+document.getElementById("angelWings").style.display=angel?"block":"none";
+document.getElementById("cat").className=angel?"cat angel":"cat";
+document.getElementById("modeTitle").textContent=angel?"Angel Demon":"Realistic Demon";
+document.getElementById("modeText").textContent=angel?
+"Wrapped in light, forever in your heart.":
+"Your beloved companion, just as you remember him.";
+}
+
+function loadPhoto(event){
+let file=event.target.files[0];
+if(!file)return;
+if(!file.type.startsWith("image/"))return;
+let reader=new FileReader();
+reader.onload=function(e){
+let img=document.getElementById("photo");
+img.src=e.target.result;
+img.style.display="block";
+document.getElementById("cat").style.display="none";
+};
+reader.readAsDataURL(file);
+}
+
+function sendMessage(){
+let input=document.getElementById("chatInput");
+let value=input.value.trim();
+if(!value)return;
+let box=document.getElementById("chatBox");
+addMessage(box,"You: "+value,false);
+let lower=value.toLowerCase();
+let response;
+if(lower.includes("miss")||lower.includes("love")){
+response="🐾 The love you shared with Demon will always be part of your story. ❤️";
+}else if(lower.includes("remember")||lower.includes("memory")){
+response="🐾 Every memory matters. Would you like to save that moment in Demon's Memory Book?";
+}else if(lower.includes("hello")||lower.includes("hi")){
+response="🐾 A little purr and a warm welcome from Demon's memorial world.";
+}else{
+response="🐾 Thank you for sharing that with Demon's memorial companion. Your memories of him are precious.";
+}
+addMessage(box,response,true);
+input.value="";
+box.scrollTop=box.scrollHeight;
+}
+
+function addMessage(box,text,isReply){
+let div=document.createElement("div");
+div.className="message"+(isReply?" reply":"");
+div.textContent=text;
+box.appendChild(div);
+}
+
+function saveMemory(){
+let input=document.getElementById("memoryInput");
+let value=input.value.trim();
+if(!value)return;
+memories.push(value);
+try{
+localStorage.setItem("demonMemories",JSON.stringify(memories));
+}catch(e){alert("Unable to save in this browser. Please copy your memory somewhere safe.");}
+input.value="";
+renderMemories();
+}
+
+function renderMemories(){
+let list=document.getElementById("memoryList");
+list.replaceChildren();
+memories.forEach(function(memory){
+let div=document.createElement("div");
+div.className="memory";
+div.textContent="🐾 "+memory;
+list.appendChild(div);
+});
+}
+</script>
+</body>
+</html>
+
