@@ -345,5 +345,12 @@ form.addEventListener("submit", async event => {
 render();
 </script>
 
+<script>
+function openCharacterChat(name) {
+  window.location.href =
+    "chat.html?character=" + encodeURIComponent(name);
+}
+</script>
+
 </body>
 </html>
