@@ -1,0 +1,349 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demon AI | Character Creator</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ font:16px Arial,sans-serif;
+ background:linear-gradient(135deg,#160b26,#442056);
+ color:white;
+}
+header{
+ padding:20px 6%;
+ background:#190d2a;
+ display:flex;
+ justify-content:space-between;
+ flex-wrap:wrap;
+ gap:12px;
+}
+a{color:#ffb0e5}
+main{max-width:1050px;margin:auto;padding:30px 18px}
+h1{font-size:clamp(30px,5vw,48px)}
+.muted{color:#e1cde9}
+.layout{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:22px;
+}
+.panel{
+ padding:24px;
+ border-radius:20px;
+ background:#ffffff0d;
+ border:1px solid #a76abb;
+}
+label{display:block;margin:15px 0 6px;font-weight:bold}
+input,select,textarea{
+ width:100%;
+ padding:12px;
+ border-radius:10px;
+ border:1px solid #a978ba;
+ background:#231333;
+ color:white;
+ font:inherit;
+}
+textarea{min-height:90px;resize:vertical}
+button{
+ background:#efa2dd;
+ color:#291034;
+ border:0;
+ border-radius:20px;
+ padding:12px 22px;
+ font-weight:bold;
+ cursor:pointer;
+ margin-top:15px;
+}
+.character{
+ border:1px solid #85509d;
+ padding:15px;
+ border-radius:15px;
+ margin:12px 0;
+ display:flex;
+ gap:15px;
+ align-items:center;
+}
+.avatar{
+ width:70px;
+ height:70px;
+ border-radius:50%;
+ background:#603579;
+ display:grid;
+ place-items:center;
+ font-size:30px;
+ flex-shrink:0;
+ overflow:hidden;
+}
+.avatar img{
+ width:100%;
+ height:100%;
+ object-fit:cover;
+}
+.character h3{margin:0}
+.character p{margin:6px 0;overflow-wrap:anywhere}
+.character button{padding:7px 13px;margin-top:5px}
+.small{font-size:13px}
+.empty{
+ padding:20px;
+ border:1px dashed #9863aa;
+ border-radius:12px;
+}
+@media(max-width:750px){
+ .layout{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+ <strong>Demon AI 💜🐾</strong>
+ <nav>
+  <a href="business.html">Business Home</a> ·
+  <a href="chat.html">Chat Demo</a> ·
+  <a href="demon-profile.html">Demon's Memorial</a>
+ </nav>
+</header>
+
+<main>
+<h1>Create Your Character ✨</h1>
+<p class="muted">
+ Give your character a name, story, and personality.
+</p>
+
+<div class="layout">
+<section class="panel">
+<h2>New Character</h2>
+
+<form id="form">
+ <label for="name">Character Name *</label>
+ <input id="name" maxlength="60" required
+ placeholder="Enter a name">
+
+ <label for="nickname">Nickname</label>
+ <input id="nickname" maxlength="60"
+ placeholder="Optional">
+
+ <label for="type">Character Type</label>
+ <select id="type">
+  <option>Friend</option>
+  <option>Companion</option>
+  <option>Fictional character</option>
+  <option>Memorial tribute</option>
+  <option>Other</option>
+ </select>
+
+ <label for="personality">Personality</label>
+ <textarea id="personality"
+ maxlength="1000"
+ placeholder="Warm, funny, adventurous..."></textarea>
+
+ <label for="story">Backstory</label>
+ <textarea id="story"
+ maxlength="2000"
+ placeholder="Tell their story..."></textarea>
+
+ <label for="photo">Profile Picture</label>
+ <input id="photo" type="file" accept="image/*">
+
+ <p class="small muted">
+  Pictures are saved only in this browser.
+ </p>
+
+ <button type="submit">Save Character 💗</button>
+ <p id="status" role="status"></p>
+</form>
+</section>
+
+<section class="panel">
+ <h2>My Characters</h2>
+ <p class="small muted">
+  Characters are saved on this device only.
+  Clearing browser data may delete them.
+  AI chat is not connected yet.
+ </p>
+ <div id="characters"></div>
+</section>
+</div>
+</main>
+
+<script>
+const KEY = "demon-ai-characters-v1";
+const form = document.getElementById("form");
+const list = document.getElementById("characters");
+const status = document.getElementById("status");
+
+function load() {
+ try {
+  const data = JSON.parse(
+   localStorage.getItem(KEY) || "[]"
+  );
+  return Array.isArray(data) ? data : [];
+ } catch {
+  return [];
+ }
+}
+
+function save(items) {
+ localStorage.setItem(KEY, JSON.stringify(items));
+}
+
+function make(tag, text) {
+ const node = document.createElement(tag);
+ if (text !== undefined) node.textContent = text;
+ return node;
+}
+
+function render() {
+ list.replaceChildren();
+ const items = load();
+
+ if (!items.length) {
+  list.append(make("p",
+   "No characters yet. Create your first one!"));
+  return;
+ }
+
+ items.forEach(item => {
+  const card = make("div");
+  card.className = "character";
+
+  const avatar = make("div");
+  avatar.className = "avatar";
+
+  if (item.photo) {
+   const img = document.createElement("img");
+   img.src = item.photo;
+   img.alt = item.name;
+   avatar.append(img);
+  } else {
+   avatar.textContent = "🐾";
+  }
+
+  const info = make("div");
+  info.style.minWidth = "0";
+  info.append(make("h3", item.name));
+
+  info.append(make("p",
+   [item.nickname, item.type]
+    .filter(Boolean).join(" · ")
+  ));
+
+  if (item.personality) {
+   info.append(make("p", item.personality));
+  }
+
+  if (item.story) {
+   const details = make("details");
+   details.append(make("summary", "Read backstory"));
+   details.append(make("p", item.story));
+   info.append(details);
+  }
+
+  const remove = make("button", "Delete");
+  remove.type = "button";
+
+  remove.onclick = () => {
+   if (confirm("Delete " + item.name + "?")) {
+    save(load().filter(x => x.id !== item.id));
+    render();
+   }
+  };
+
+  info.append(remove);
+  card.append(avatar, info);
+  list.append(card);
+ });
+}
+
+function picture(file) {
+ return new Promise((resolve, reject) => {
+  if (!file) return resolve("");
+
+  if (!file.type.startsWith("image/")) {
+   return reject(Error("Choose an image"));
+  }
+
+  const reader = new FileReader();
+
+  reader.onerror = () =>
+   reject(Error("Could not read picture"));
+
+  reader.onload = () => {
+   const img = new Image();
+
+   img.onerror = () =>
+    reject(Error("Could not open picture"));
+
+   img.onload = () => {
+    const canvas = document.createElement("canvas");
+    const scale = Math.min(
+     1, 360 / Math.max(img.width, img.height)
+    );
+
+    canvas.width = Math.max(
+     1, Math.round(img.width * scale)
+    );
+    canvas.height = Math.max(
+     1, Math.round(img.height * scale)
+    );
+
+    canvas.getContext("2d").drawImage(
+     img, 0, 0, canvas.width, canvas.height
+    );
+
+    resolve(canvas.toDataURL("image/jpeg", 0.72));
+   };
+
+   img.src = reader.result;
+  };
+
+  reader.readAsDataURL(file);
+ });
+}
+
+form.addEventListener("submit", async event => {
+ event.preventDefault();
+ status.textContent = "Saving...";
+
+ try {
+  const name = document.getElementById("name")
+   .value.trim();
+
+  if (!name) throw Error("Enter a name");
+
+  const photo = await picture(
+   document.getElementById("photo").files[0]
+  );
+
+  const item = {
+   id: Date.now() + "-" + Math.random(),
+   name: name,
+   nickname: document.getElementById("nickname")
+    .value.trim(),
+   type: document.getElementById("type").value,
+   personality: document.getElementById("personality")
+    .value.trim(),
+   story: document.getElementById("story")
+    .value.trim(),
+   photo: photo
+  };
+
+  save([item, ...load()]);
+  form.reset();
+  status.textContent = "Character saved! 💜";
+  render();
+
+ } catch (error) {
+  status.textContent =
+   "Could not save: " + error.message;
+ }
+});
+
+render();
+</script>
+
+</body>
+</html>
